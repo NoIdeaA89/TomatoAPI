@@ -12,9 +12,10 @@ app = FastAPI(
 # Ajustá esto a la URL real de tu frontend en producción (Vercel, etc.)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=["*"], # Permite que cualquier frontend (como tu React en el puerto 5173) se conecte
+    allow_credentials=True,
+    allow_methods=["*"], # Libera los permisos para peticiones POST, GET, PUT, DELETE
+    allow_headers=["*"], # Permite el envío de datos en formato JSON
 )
 
 app.include_router(riego.router)

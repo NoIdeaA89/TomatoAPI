@@ -1,66 +1,71 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from datetime import timedelta
+from datetime import date, timedelta
+from pydantic import BaseModel
 from app.database import get_db
 from app.models import Planta
-from app.schemas import ProyectoCreate, DiaRiego
 
 router = APIRouter(prefix="/riego", tags=["riego"])
 
-# Diccionario de retención hídrica por tipo de suelo (Días que dura la humedad)
-RETENCION_SUELO = {
-    "arenoso": 1,   # Drena rápido, riegos diarios
-    "franco": 2,    # Retención equilibrada
-    "limoso": 3,    # Retención moderada-alta
-    "arcilloso": 4  # Retiene mucha agua, riegos espaciados
-}
+# 1. Esquemas para validar lo que entra y sale hacia React
+class RecomendacionRequest(BaseModel):
+    tipo_planta: str
+    latitud: float
+    longitud: float
 
-@router.post("/simular", response_model=list[DiaRiego])
-def simular_riego_proyecto(proyecto: ProyectoCreate, db: Session = Depends(get_db)):
-    # 1. Buscar la biología de la planta seleccionada en la BD
-    planta = db.query(Planta).filter(Planta.id_planta == proyecto.id_planta).first()
+class DiaRecomendado(BaseModel):
+    fecha: str
+    recomendable: bool
+    motivo: str
+
+class RecomendacionResponse(BaseModel):
+    dias: list[DiaRecomendado]
+
+# 2. Endpoint de la tabla (Ya lo tienes funcionando)
+@router.get("/plantas")
+def obtener_plantas(db: Session = Depends(get_db)):
+    return db.query(Planta).all()
+
+# 3. El nuevo cerebro de recomendaciones
+@router.post("/recomendacion", response_model=RecomendacionResponse)
+async def recomendar_riego(payload: RecomendacionRequest, db: Session = Depends(get_db)):
+    
+    # Buscamos la planta en la base de datos (ilike ignora mayúsculas/minúsculas)
+    planta = db.query(Planta).filter(Planta.nombre_comun.ilike(payload.tipo_planta)).first()
     
     if not planta:
-        raise HTTPException(status_code=404, detail="Planta no encontrada en el catálogo")
+        raise HTTPException(status_code=404, detail=f"La planta '{payload.tipo_planta}' no está en nuestro catálogo.")
 
-    # 2. Extraer propiedades del suelo
-    tipo_suelo = proyecto.tipo_suelo.lower()
-    dias_humedad = RETENCION_SUELO.get(tipo_suelo, 2) # Franco como valor por defecto
+    # Lógica agronómica matemática:
+    # Raíces profundas retienen humedad más días que raíces superficiales.
+    dias_retencion = 3 if planta.profundidad_raiz_cm >= 60 else 1
 
-    # 3. Calcular tiempo de hardware (Bomba Pentax CHT350)
-    # Raíces profundas requieren riegos más largos para saturar la tierra hasta abajo
-    minutos_base = 30 + (planta.profundidad_raiz_cm // 10) * 5
+    hoy = date.today()
+    dias_recomendados = []
 
-    calendario = []
-    fecha_actual = proyecto.fecha_ultimo_riego
-    
-    # 4. Proyectar los próximos 5 días 
-    for i in range(1, 6):
-        fecha_actual += timedelta(days=1)
+    for i in range(5):
+        fecha_actual = hoy + timedelta(days=i)
         
-        # TODO: Conectar con httpx a la API del clima para la zona (ej. Altovalsol)
-        pronostico_lluvia_mm = 0 # Valor simulado temporalmente
-        
-        if pronostico_lluvia_mm > 5:
-            calendario.append(DiaRiego(
+        # TODO: Aquí inyectaremos la API de clima usando payload.latitud y payload.longitud
+        lluvia_pronosticada = False 
+
+        if lluvia_pronosticada:
+            dias_recomendados.append(DiaRecomendado(
                 fecha=fecha_actual.strftime("%Y-%m-%d"),
-                regar=False,
-                minutos_bomba=0,
-                motivo=f"Lluvia de {pronostico_lluvia_mm}mm. Riego de aspersores Xcel Wobbler suspendido."
+                recomendable=False,
+                motivo="Lluvia pronosticada en la zona. Riego suspendido."
             ))
-        elif i % dias_humedad == 0:
-            calendario.append(DiaRiego(
+        elif i % dias_retencion == 0:
+            dias_recomendados.append(DiaRecomendado(
                 fecha=fecha_actual.strftime("%Y-%m-%d"),
-                regar=True,
-                minutos_bomba=minutos_base,
-                motivo=f"Humedad agotada tras {dias_humedad} día(s) en suelo {tipo_suelo}."
+                recomendable=True,
+                motivo=f"Requiere riego. Raíz a {planta.profundidad_raiz_cm}cm (Kc: {planta.kc_medio})."
             ))
         else:
-             calendario.append(DiaRiego(
+            dias_recomendados.append(DiaRecomendado(
                 fecha=fecha_actual.strftime("%Y-%m-%d"),
-                regar=False,
-                minutos_bomba=0,
-                motivo=f"Suelo {tipo_suelo} mantiene humedad. Raíz a {planta.profundidad_raiz_cm}cm."
+                recomendable=False,
+                motivo="El suelo aún conserva humedad del riego anterior."
             ))
-            
-    return calendario
+
+    return RecomendacionResponse(dias=dias_recomendados)
