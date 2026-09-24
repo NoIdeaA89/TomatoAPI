@@ -1,0 +1,58 @@
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+}
+@media (min-width: 900px) {
+  .stats-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+.stat-card {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  padding: 1.25rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+}
+.stat-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 13px;
+  flex-shrink: 0;
+}
+.stat-value {
+  display: block;
+  font-family: var(--font-sans);
+  font-weight: 800;
+  font-size: 1.9rem;
+  line-height: 1;
+}
+.stat-label {
+  display: block;
+  margin-top: 0.25rem;
+  font-size: 0.85rem;
+  color: var(--color-muted);
+}
+.tone-primary .stat-icon {
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+}
+.tone-warning .stat-icon {
+  background: var(--color-warning-soft);
+  color: var(--color-warning);
+}
+.tone-water .stat-icon {
+  background: var(--color-water-soft);
+  color: var(--color-water);
+}
+.tone-success .stat-icon {
+  background: var(--color-success-soft);
+  color: var(--color-success);
+}

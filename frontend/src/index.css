@@ -1,0 +1,367 @@
+@import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap");
+
+/* =========================================================
+   TomatoAPI - Design tokens
+   Paleta: verde agrícola (primario), azul agua (acento),
+   y una escala de neutros. Máx 5 familias de color.
+   ========================================================= */
+:root {
+  /* Marca */
+  --color-primary: #2f7d4f;
+  --color-primary-dark: #245f3d;
+  --color-primary-soft: #e7f2ec;
+
+  /* Acento agua */
+  --color-water: #2b8ac9;
+  --color-water-soft: #e5f1fa;
+
+  /* Neutros */
+  --color-bg: #f5f7f4;
+  --color-bg-muted: #eef2ee;
+  --color-surface: #ffffff;
+  --color-surface-2: #fbfcfb;
+  --color-text: #1c2620;
+  --color-muted: #667a70;
+  --color-border: #e2e8e3;
+
+  /* Estados semánticos */
+  --color-warning: #c8811f;
+  --color-warning-soft: #fbf0dd;
+  --color-danger: #c0432f;
+  --color-danger-soft: #fae4e0;
+  --color-success: #2f7d4f;
+  --color-success-soft: #e7f2ec;
+
+  /* Radios y sombras */
+  --radius-sm: 8px;
+  --radius: 14px;
+  --radius-lg: 20px;
+  --shadow-sm: 0 1px 2px rgba(28, 38, 32, 0.05);
+  --shadow: 0 4px 14px rgba(28, 38, 32, 0.07);
+  --shadow-md: 0 10px 30px rgba(28, 38, 32, 0.1);
+
+  --font-sans: "Plus Jakarta Sans", "Inter", system-ui, sans-serif;
+  --font-body: "Inter", system-ui, sans-serif;
+
+  --sidebar-width: 260px;
+  --header-height: 68px;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  background: var(--color-bg);
+}
+
+body {
+  font-family: var(--font-body);
+  color: var(--color-text);
+  background: var(--color-bg);
+  -webkit-font-smoothing: antialiased;
+  line-height: 1.55;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-sans);
+  line-height: 1.2;
+  color: var(--color-text);
+  text-wrap: balance;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+input,
+select,
+textarea {
+  font-family: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* =========================================================
+   Botones
+   ========================================================= */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 0.925rem;
+  padding: 0.65rem 1.15rem;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  transition: background 0.15s ease, box-shadow 0.15s ease, transform 0.05s ease,
+    border-color 0.15s ease, color 0.15s ease;
+  white-space: nowrap;
+}
+.btn:active {
+  transform: translateY(1px);
+}
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.btn-primary {
+  background: var(--color-primary);
+  color: #fff;
+  box-shadow: var(--shadow-sm);
+}
+.btn-primary:hover:not(:disabled) {
+  background: var(--color-primary-dark);
+}
+.btn-secondary {
+  background: var(--color-surface);
+  color: var(--color-text);
+  border-color: var(--color-border);
+}
+.btn-secondary:hover:not(:disabled) {
+  background: var(--color-surface-2);
+  border-color: #cdd8d0;
+}
+.btn-ghost {
+  background: transparent;
+  color: var(--color-muted);
+}
+.btn-ghost:hover:not(:disabled) {
+  background: var(--color-primary-soft);
+  color: var(--color-primary-dark);
+}
+.btn-danger {
+  background: var(--color-danger);
+  color: #fff;
+}
+.btn-danger:hover:not(:disabled) {
+  background: #a5382770;
+  background: #9e3524;
+}
+.btn-block {
+  width: 100%;
+}
+.btn-sm {
+  padding: 0.45rem 0.8rem;
+  font-size: 0.85rem;
+}
+
+/* =========================================================
+   Formularios
+   ========================================================= */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-bottom: 1.1rem;
+}
+.field label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  font-family: var(--font-sans);
+  color: var(--color-text);
+}
+.input,
+.select {
+  width: 100%;
+  padding: 0.7rem 0.85rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: 0.95rem;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.input::placeholder {
+  color: #9aa8a1;
+}
+.input:focus,
+.select:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-soft);
+}
+.input.has-error,
+.select.has-error {
+  border-color: var(--color-danger);
+}
+.field-error {
+  font-size: 0.8rem;
+  color: var(--color-danger);
+  font-weight: 500;
+}
+.input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.input-wrap .input {
+  padding-right: 2.75rem;
+}
+.input-toggle {
+  position: absolute;
+  right: 0.5rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.35rem;
+  border: none;
+  background: transparent;
+  color: var(--color-muted);
+  border-radius: var(--radius-sm);
+}
+.input-toggle:hover {
+  color: var(--color-text);
+  background: var(--color-surface-2);
+}
+
+/* =========================================================
+   Tarjetas
+   ========================================================= */
+.card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+}
+
+/* =========================================================
+   Utilidades
+   ========================================================= */
+.container-page {
+  width: 100%;
+  max-width: 1160px;
+  margin: 0 auto;
+}
+.muted {
+  color: var(--color-muted);
+}
+.stack {
+  display: flex;
+  flex-direction: column;
+}
+.stack-md {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+}
+.stack-lg {
+  display: flex;
+  flex-direction: column;
+  gap: 1.85rem;
+}
+
+/* Encabezado de página: título + acción */
+.page-head {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.page-head h1 {
+  font-size: 1.75rem;
+}
+@media (min-width: 640px) {
+  .page-head {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+
+/* Encabezado de sección: título + enlace */
+.section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+.section-head h2 {
+  font-size: 1.3rem;
+}
+.link-strong {
+  font-family: var(--font-sans);
+  font-weight: 700;
+  font-size: 0.88rem;
+  color: var(--color-primary);
+}
+.link-strong:hover {
+  color: var(--color-primary-dark);
+  text-decoration: underline;
+}
+
+/* Aviso de modo demostración */
+.demo-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  padding: 0.85rem 1.1rem;
+  background: var(--color-water-soft);
+  border: 1px solid #c7e2f2;
+  border-radius: var(--radius);
+  color: #1c5b82;
+}
+.demo-banner svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: var(--color-water);
+}
+.demo-banner p {
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+.demo-banner strong {
+  font-family: var(--font-sans);
+}
+
+/* Spinner */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.spinner {
+  border-radius: 50%;
+  border: 3px solid var(--color-border);
+  border-top-color: var(--color-primary);
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
