@@ -11,7 +11,7 @@ on:
       - 'frontend/**'
 
 jobs:
-  test-and-build:
+  build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -27,18 +27,17 @@ jobs:
         working-directory: ./frontend
         run: npm ci
 
-      - name: Correr tests
-        working-directory: ./frontend
-        run: npm test
-
+      # El frontend aún no tiene tests ni script "test"; el build valida que compile.
       - name: Build
         working-directory: ./frontend
+        env:
+          VITE_USE_MOCKS: 'false'
         run: npm run build
 
   deploy:
-    needs: test-and-build
+    needs: build
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
       - name: Trigger deploy en Render (static site)
-        run: curl -X POST "${{ secrets.RENDER_FRONTEND_DEPLOY_HOOK_URL }}"
+        run: curl -fsS -X POST "${{ secrets.RENDER_FRONTEND_DEPLOY_HOOK_URL }}"
