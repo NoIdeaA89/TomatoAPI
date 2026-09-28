@@ -1,17 +1,27 @@
-import os
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import DeclarativeBase, sessionmaker
+from sqlalchemy.pool import StaticPool
 
-# Si Docker pasa la URL, la usa. Si corres local, apunta a localhost con las credenciales del compose.
-SQLALCHEMY_DATABASE_URL = os.getenv(
-    "DATABASE_URL", 
-    "postgresql://postgres:postgres@localhost:5432/riego"
-)
+from app.config import settings
 
-engine = create_engine(SQLALCHEMY_DATABASE_URL)
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-Base = declarative_base()
+
+class Base(DeclarativeBase):
+    pass
+
+
+def crear_engine(url: str):
+    if url.startswith("sqlite"):
+        kwargs: dict = {"connect_args": {"check_same_thread": False}}
+        if ":memory:" in url or url == "sqlite://":
+            kwargs["poolclass"] = StaticPool
+        return create_engine(url, **kwargs)
+    # pool_pre_ping evita errores por conexiones que Neon cierra tras inactividad.
+    return create_engine(url, pool_pre_ping=True)
+
+
+engine = crear_engine(settings.database_url)
+SessionLocal = sessionmaker(bind=engine, autoflush=False, expire_on_commit=False)
+
 
 def get_db():
     db = SessionLocal()
