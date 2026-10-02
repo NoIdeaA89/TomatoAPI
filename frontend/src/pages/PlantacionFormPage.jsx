@@ -18,6 +18,7 @@ const EMPTY = {
   ubicacion: "",
   tipo_tierra: "",
   etapa: "",
+  ultimo_riego: "",
 }
 
 export default function PlantacionFormPage() {
@@ -45,6 +46,8 @@ export default function PlantacionFormPage() {
           ubicacion: p.ubicacion || "",
           tipo_tierra: p.tipo_tierra || "",
           etapa: p.etapa || "",
+          // Cortamos el string de fecha para obtener solo "YYYY-MM-DD"
+          ultimo_riego: p.ultimo_riego ? p.ultimo_riego.split('T')[0] : "", 
         })
         setErrorCarga(null)
       })
@@ -81,6 +84,8 @@ export default function PlantacionFormPage() {
         ubicacion: form.ubicacion.trim(),
         tipo_tierra: form.tipo_tierra,
         etapa: form.etapa,
+        // Convertimos el string a formato ISO o enviamos null
+        ultimo_riego: form.ultimo_riego ? new Date(form.ultimo_riego).toISOString() : null,
       }
       const registro = esEdicion
         ? await actualizarPlantacion(id, payload)
@@ -137,15 +142,18 @@ export default function PlantacionFormPage() {
         </div>
 
         <div className="field">
-          <label htmlFor="ubicacion">Ubicación</label>
+          <label htmlFor="ultimo_riego">Último riego (Opcional)</label>
           <input
-            id="ubicacion"
-            className={`input ${errores.ubicacion ? "has-error" : ""}`}
-            placeholder="Ej. Coquimbo, Chile"
-            value={form.ubicacion}
-            onChange={(e) => actualizar("ubicacion", e.target.value)}
+            id="ultimo_riego"
+            type="date"
+            className="input"
+            value={form.ultimo_riego}
+            max={new Date().toISOString().split("T")[0]} // Evita seleccionar fechas futuras
+            onChange={(e) => actualizar("ultimo_riego", e.target.value)}
           />
-          {errores.ubicacion && <span className="field-error">{errores.ubicacion}</span>}
+          <p className="muted" style={{ fontSize: "0.8rem", marginTop: "0.25rem" }}>
+            Si lo dejas en blanco, el sistema asumirá que el suelo está saturado de humedad a partir de hoy.
+          </p>
         </div>
 
         <div className="field">

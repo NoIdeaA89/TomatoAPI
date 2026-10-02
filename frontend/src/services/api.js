@@ -15,7 +15,7 @@ import axios from "axios"
  *  petición real al backend tuvo éxito.
  * ========================================================================= */
 
-export const USE_MOCKS = String(import.meta.env.VITE_USE_MOCKS ?? "true") !== "false"
+export const USE_MOCKS = String(import.meta.env.VITE_USE_MOCKS ?? "false") !== "false"
 
 const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000"
 
