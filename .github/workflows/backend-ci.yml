@@ -1,5 +1,12 @@
 name: Backend CI/CD
 
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 on:
   push:
     branches: [main]
@@ -57,3 +64,24 @@ jobs:
     steps:
       - name: Trigger deploy en Render
         run: curl -fsS -X POST "${{ secrets.RENDER_DEPLOY_HOOK_URL }}"
+
+  smoke-prod:
+    needs: deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Esperar que el backend responda
+        run: |
+          sleep 60
+          for i in $(seq 1 30); do
+            if curl -fs https://tomatoapi-v2ap.onrender.com/health; then exit 0; fi
+            sleep 10
+          done
+          exit 1
+
+      - name: Verificar CORS desde el frontend
+        run: |
+          curl -fsi -X OPTIONS https://tomatoapi-v2ap.onrender.com/auth/login \
+            -H "Origin: https://tomatoapi-1.onrender.com" \
+            -H "Access-Control-Request-Method: POST" \
+            -H "Access-Control-Request-Headers: content-type" \
+            | grep -i "access-control-allow-origin: https://tomatoapi-1.onrender.com"
