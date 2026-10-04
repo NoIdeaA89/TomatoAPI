@@ -20,7 +20,9 @@ def test_catalogo_de_plantas(client):
     assert r.status_code == 200
     plantas = {p["id"]: p for p in r.json()}
     assert len(plantas) == 6
-    assert plantas["tomate"] == {"id": "tomate", "nombre": "Tomate", "especie": "Solanum lycopersicum"}
+    assert plantas["tomate"] == {"id": "tomate", "nombre": "Tomate", "especie": "Solanum lycopersicum",
+                                "kc_ini": 0.6, "kc_mid": 1.15, "kc_end": 0.8,
+                                "raiz_m": 0.7, "agotamiento": 0.4}
 
 
 def test_crear_plantacion(client, auth):

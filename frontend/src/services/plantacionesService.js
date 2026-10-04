@@ -25,6 +25,7 @@ import {
  *  durante la demostración. Se reinicia al recargar la página.
  */
 
+const catalogo = MOCK_PLANTAS.map((p) => ({ ...p }))
 let memoria = null
 function store() {
   if (!memoria) memoria = MOCK_PLANTACIONES.map((p) => ({ ...p }))
@@ -54,7 +55,7 @@ export async function obtenerPlantacion(id) {
 export async function crearPlantacion(payload) {
   if (USE_MOCKS) {
     await mockDelay()
-    const planta = MOCK_PLANTAS.find((p) => p.id === payload.planta)
+    const planta = catalogo.find((p) => p.id === payload.planta)
     const nueva = {
       id: String(Date.now()),
       ...payload,
@@ -76,7 +77,7 @@ export async function actualizarPlantacion(id, payload) {
     const list = store()
     const idx = list.findIndex((x) => x.id === String(id))
     if (idx === -1) throw { isNormalized: true, status: 404, message: "Plantación no encontrada." }
-    const planta = MOCK_PLANTAS.find((p) => p.id === payload.planta)
+    const planta = catalogo.find((p) => p.id === payload.planta)
     list[idx] = {
       ...list[idx],
       ...payload,
@@ -101,7 +102,7 @@ export async function eliminarPlantacion(id) {
 export async function listarPlantas() {
   if (USE_MOCKS) {
     await mockDelay(250)
-    return MOCK_PLANTAS.map((p) => ({ ...p }))
+    return catalogo.map((p) => ({ ...p }))
   }
   const { data } = await api.get("/plantas")
   return data.items || data
@@ -143,4 +144,18 @@ export async function obtenerHumedad(id) {
   }
   const { data } = await api.get(`/plantaciones/${id}/humedad`)
   return data
+}
+
+export async function crearPlanta(payload) {
+  if (USE_MOCKS) {
+    await mockDelay();
+    // Mantener el catálogo durante la sesión de demostración.
+    if (catalogo.some((p) => p.id === payload.id || p.nombre === payload.nombre)) {
+      throw { isNormalized: true, status: 409, message: "Esta planta o ID ya existe en el catálogo." }
+    }
+    catalogo.push({ ...payload })
+    return { ...payload };
+  }
+  const { data } = await api.post("/plantas", payload);
+  return data;
 }

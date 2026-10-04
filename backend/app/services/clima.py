@@ -23,7 +23,7 @@ VARIABLES_DIARIAS = [
     "precipitation_probability_max",
     "et0_fao_evapotranspiration",
 ]
-DIAS_PASADOS = 7
+DIAS_PASADOS = 30
 DIAS_FUTUROS = 7
 ET0_POR_DEFECTO = 3.0  # mm/día, solo si la API no entrega el dato
 

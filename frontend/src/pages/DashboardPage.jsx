@@ -39,10 +39,16 @@ export default function DashboardPage() {
           <h1>Hola, {user?.nombre?.split(" ")[0] || "agricultor"}</h1>
           <p className="muted">Resumen del estado de riego de tus cultivos.</p>
         </div>
-        <Link to="/plantaciones/nueva" className="btn btn-primary">
-          <Plus size={18} aria-hidden="true" />
-          Nueva plantación
-        </Link>
+        <div style={{ display: "flex", gap: "0.75rem" }}>
+          <Link to="/plantas/nueva" className="btn btn-secondary">
+            <Sprout size={18} aria-hidden="true" />
+            Nueva planta
+          </Link>
+          <Link to="/plantaciones/nueva" className="btn btn-primary">
+            <Plus size={18} aria-hidden="true" />
+            Nueva plantación
+          </Link>
+        </div>
       </header>
 
       {loading && <LoadingSpinner label="Cargando tu panel…" />}

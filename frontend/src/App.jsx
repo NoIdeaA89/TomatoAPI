@@ -9,6 +9,8 @@ import PlantacionesPage from "./pages/PlantacionesPage.jsx"
 import PlantacionFormPage from "./pages/PlantacionFormPage.jsx"
 import PlantacionDetailPage from "./pages/PlantacionDetailPage.jsx"
 import NotFoundPage from "./pages/NotFoundPage.jsx"
+import PlantaFormPage from "./pages/PlantaFormPage.jsx"
+
 
 export default function App() {
   return (
@@ -42,6 +44,7 @@ export default function App() {
         <Route path="/plantaciones/nueva" element={<PlantacionFormPage />} />
         <Route path="/plantaciones/:id" element={<PlantacionDetailPage />} />
         <Route path="/plantaciones/:id/editar" element={<PlantacionFormPage />} />
+        <Route path="/plantas/nueva" element={<PlantaFormPage />} />
       </Route>
 
       <Route path="/404" element={<NotFoundPage />} />
