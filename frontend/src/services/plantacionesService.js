@@ -144,3 +144,13 @@ export async function obtenerHumedad(id) {
   const { data } = await api.get(`/plantaciones/${id}/humedad`)
   return data
 }
+
+export async function crearPlanta(payload) {
+  if (USE_MOCKS) {
+    await mockDelay();
+    // En modo mock, simplemente devolvemos el payload simulando éxito
+    return { ...payload };
+  }
+  const { data } = await api.post("/plantas", payload);
+  return data;
+}

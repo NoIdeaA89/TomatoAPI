@@ -4,7 +4,6 @@ from typing import Literal, Optional
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
-from app.services.catalogo import CATALOGO
 
 _EMAIL_RE = re.compile(r"^[^\s@]+@[^\s@]+\.[^\s@]+$")
 
@@ -64,10 +63,27 @@ class TokenOut(BaseModel):
 
 
 # ---------- Plantas y plantaciones ----------
+class PlantaIn(BaseModel):
+    id: str = Field(max_length=40, description="Ej: nalca, tomate_cherry")
+    nombre: str = Field(max_length=100)
+    especie: str = Field(max_length=100)
+    kc_ini: float = Field(ge=0.1, le=2.0)
+    kc_mid: float = Field(ge=0.1, le=2.0)
+    kc_end: float = Field(ge=0.1, le=2.0)
+    raiz_m: float = Field(ge=0.1, le=5.0)
+    agotamiento: float = Field(ge=0.1, le=0.9)
+
 class PlantaOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    
     id: str
     nombre: str
     especie: str
+    kc_ini: float
+    kc_mid: float
+    kc_end: float
+    raiz_m: float
+    agotamiento: float
 
 
 class PlantacionIn(BaseModel):
@@ -76,13 +92,6 @@ class PlantacionIn(BaseModel):
     tipo_tierra: TipoTierra
     etapa: Etapa
     ultimo_riego: Optional[datetime] = None
-
-    @field_validator("planta")
-    @classmethod
-    def _planta(cls, v: str) -> str:
-        if v not in CATALOGO:
-            raise ValueError("Planta no válida.")
-        return v
 
     @field_validator("ubicacion")
     @classmethod

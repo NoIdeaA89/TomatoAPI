@@ -18,9 +18,11 @@ from app.schemas import (
     RecomendacionOut,
     RiegoOut,
 )
-from app.services.catalogo import CATALOGO
 from app.services.clima import ClimaError, OpenMeteoClient, UbicacionNoEncontrada, get_clima_client
 from app.services.riego import DIAS_PLAN, Evaluacion, Pronostico, evaluar, fecha_local
+from app.models import Planta
+
+
 
 router = APIRouter(
     prefix="/plantaciones",
@@ -73,18 +75,24 @@ def _pronostico(clima: OpenMeteoClient, p: Plantacion) -> Pronostico:
         )
 
 
-def _evaluar(p: Plantacion, pron: Pronostico) -> Evaluacion:
+def _evaluar(p: Plantacion, pron: Pronostico, db: Session) -> Evaluacion:
+    planta_db = db.get(Planta, p.planta)
+    if not planta_db:
+        raise HTTPException(status_code=400, detail=f"La planta '{p.planta}' no existe en el catálogo.")
+        
     base = fecha_local(p.ultimo_riego or p.creado_en, pron.utc_offset_segundos)
     try:
-        return evaluar(pron, CATALOGO[p.planta], p.tipo_tierra, p.etapa, base)
+        
+        return evaluar(pron, planta_db, p.tipo_tierra, p.etapa, base)
     except ValueError:
         raise HTTPException(status_code=502, detail="El pronóstico recibido está incompleto.")
 
 
-def _evaluar_seguro(clima: OpenMeteoClient, p: Plantacion) -> Optional[Evaluacion]:
+def _evaluar_seguro(clima: OpenMeteoClient, p: Plantacion, db: Session) -> Optional[Evaluacion]:
     """Para listados: si el clima falla, la plantación se muestra igual, sin estado."""
     try:
-        return _evaluar(p, _pronostico(clima, p))
+        
+        return _evaluar(p, _pronostico(clima, p), db)
     except HTTPException:
         return None
 
@@ -93,7 +101,7 @@ def _serializar(p: Plantacion, ev: Optional[Evaluacion]) -> PlantacionOut:
     return PlantacionOut(
         id=p.id,
         planta=p.planta,
-        planta_nombre=CATALOGO[p.planta].nombre,
+        planta_nombre=p.planta_rel.nombre, 
         ubicacion=p.ubicacion,
         tipo_tierra=p.tipo_tierra,
         etapa=p.etapa,
@@ -116,7 +124,8 @@ def listar(
         .where(Plantacion.user_id == user.id)
         .order_by(Plantacion.creado_en.desc())
     ).all()
-    return [_serializar(p, _evaluar_seguro(clima, p)) for p in plantaciones]
+    return [_serializar(p, _evaluar_seguro(clima, p, db)) for p in plantaciones]
+
 
 
 @router.post("", response_model=PlantacionOut, status_code=201)
@@ -142,7 +151,7 @@ def crear(
 
     db.refresh(p)
     
-    return _serializar(p, _evaluar_seguro(clima, p))
+    return _serializar(p, _evaluar_seguro(clima, p, db))
 
 
 @router.get("/{plantacion_id}", response_model=PlantacionOut)
@@ -153,7 +162,7 @@ def obtener(
     clima: OpenMeteoClient = Depends(get_clima_client),
 ):
     p = _obtener(db, user, plantacion_id)
-    return _serializar(p, _evaluar_seguro(clima, p))
+    return _serializar(p, _evaluar_seguro(clima, p, db))
 
 
 @router.put("/{plantacion_id}", response_model=PlantacionOut)
@@ -174,7 +183,7 @@ def actualizar(
     if payload.ultimo_riego is not None:
         p.ultimo_riego = payload.ultimo_riego
     db.commit()
-    return _serializar(p, _evaluar_seguro(clima, p))
+    return _serializar(p, _evaluar_seguro(clima, p, db))
 
 
 @router.delete("/{plantacion_id}", status_code=204)
@@ -198,7 +207,7 @@ def ver_recomendacion(
     clima: OpenMeteoClient = Depends(get_clima_client),
 ):
     p = _obtener(db, user, plantacion_id)
-    ev = _evaluar(p, _pronostico(clima, p))
+    ev = _evaluar(p, _pronostico(clima, p), db)
     return RecomendacionOut(estado=ev.estado, titulo=ev.titulo, motivo=ev.motivo)
 
 
@@ -210,7 +219,7 @@ def ver_plan_de_riego(
     clima: OpenMeteoClient = Depends(get_clima_client),
 ):
     p = _obtener(db, user, plantacion_id)
-    ev = _evaluar(p, _pronostico(clima, p))
+    ev = _evaluar(p, _pronostico(clima, p), db)
     return RiegoOut(
         dias=[DiaRiegoOut(fecha=_mediodia(d.fecha), regar=d.regar, motivo=d.motivo) for d in ev.plan]
     )
@@ -249,7 +258,7 @@ def ver_humedad(
     clima: OpenMeteoClient = Depends(get_clima_client),
 ):
     p = _obtener(db, user, plantacion_id)
-    ev = _evaluar(p, _pronostico(clima, p))
+    ev = _evaluar(p, _pronostico(clima, p), db)
     return HumedadOut(
         porcentaje=ev.humedad_pct,
         nivel=ev.nivel,
@@ -269,4 +278,4 @@ def registrar_riego(
     p = _obtener(db, user, plantacion_id)
     p.ultimo_riego = datetime.now(timezone.utc)
     db.commit()
-    return _serializar(p, _evaluar_seguro(clima, p))
+    return _serializar(p, _evaluar_seguro(clima, p, db))

@@ -35,7 +35,7 @@ class Plantacion(Base):
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
     user_id: Mapped[str] = mapped_column(ForeignKey("users.id"), index=True)
-    planta: Mapped[str] = mapped_column(String(40))
+    planta: Mapped[str] = mapped_column(String(40), ForeignKey("plantas.id"))
     ubicacion: Mapped[str] = mapped_column(String(160))
     latitud: Mapped[float] = mapped_column(Float)
     longitud: Mapped[float] = mapped_column(Float)
@@ -45,3 +45,17 @@ class Plantacion(Base):
     creado_en: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_ahora)
 
     usuario: Mapped["User"] = relationship(back_populates="plantaciones")
+    planta_rel: Mapped["Planta"] = relationship()
+
+
+class Planta(Base):
+    __tablename__ = "plantas"
+
+    id: Mapped[str] = mapped_column(String(40), primary_key=True)
+    nombre: Mapped[str] = mapped_column(String(100), unique=True)
+    especie: Mapped[str] = mapped_column(String(100))
+    kc_ini: Mapped[float] = mapped_column(Float)
+    kc_mid: Mapped[float] = mapped_column(Float)
+    kc_end: Mapped[float] = mapped_column(Float)
+    raiz_m: Mapped[float] = mapped_column(Float)
+    agotamiento: Mapped[float] = mapped_column(Float)
