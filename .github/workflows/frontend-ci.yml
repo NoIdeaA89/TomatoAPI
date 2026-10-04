@@ -30,9 +30,8 @@ jobs:
 
       - name: Instalar dependencias
         working-directory: ./frontend
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --frozen-lockfile --ignore-workspace
 
-      # El frontend aún no tiene tests ni script "test"; el build valida que compile.
       - name: Build
         working-directory: ./frontend
         env:
