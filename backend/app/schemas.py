@@ -64,9 +64,11 @@ class TokenOut(BaseModel):
 
 # ---------- Plantas y plantaciones ----------
 class PlantaIn(BaseModel):
-    id: str = Field(max_length=40, description="Ej: nalca, tomate_cherry")
-    nombre: str = Field(max_length=100)
-    especie: str = Field(max_length=100)
+    model_config = ConfigDict(str_strip_whitespace=True, allow_inf_nan=False)
+
+    id: str = Field(min_length=1, max_length=40, pattern=r"^[a-z0-9_]+$", description="Ej: nalca, tomate_cherry")
+    nombre: str = Field(min_length=1, max_length=100)
+    especie: str = Field(min_length=1, max_length=100)
     kc_ini: float = Field(ge=0.1, le=2.0)
     kc_mid: float = Field(ge=0.1, le=2.0)
     kc_end: float = Field(ge=0.1, le=2.0)
@@ -87,7 +89,7 @@ class PlantaOut(BaseModel):
 
 
 class PlantacionIn(BaseModel):
-    planta: str
+    planta: str = Field(min_length=1, max_length=40)
     ubicacion: str = Field(max_length=160)
     tipo_tierra: TipoTierra
     etapa: Etapa

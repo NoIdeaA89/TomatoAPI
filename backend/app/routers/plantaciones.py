@@ -135,6 +135,8 @@ def crear(
     user: User = Depends(get_current_user),
     clima: OpenMeteoClient = Depends(get_clima_client),
 ):
+    if db.get(Planta, payload.planta) is None:
+        raise HTTPException(status_code=422, detail="Planta no válida.")
     latitud, longitud = _geocodificar(clima, payload.ubicacion)
     p = Plantacion(
         user_id=user.id,
@@ -174,10 +176,14 @@ def actualizar(
     clima: OpenMeteoClient = Depends(get_clima_client),
 ):
     p = _obtener(db, user, plantacion_id)
+    planta = db.get(Planta, payload.planta)
+    if planta is None:
+        raise HTTPException(status_code=422, detail="Planta no válida.")
     if payload.ubicacion != p.ubicacion:
         p.latitud, p.longitud = _geocodificar(clima, payload.ubicacion)
         p.ubicacion = payload.ubicacion
     p.planta = payload.planta
+    p.planta_rel = planta
     p.tipo_tierra = payload.tipo_tierra
     p.etapa = payload.etapa
     if payload.ultimo_riego is not None:

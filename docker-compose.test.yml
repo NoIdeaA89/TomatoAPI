@@ -1,0 +1,24 @@
+services:
+  test-db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: test
+      POSTGRES_PASSWORD: test
+      POSTGRES_DB: tomato_test
+    tmpfs:
+      - /var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U test -d tomato_test"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+  tests:
+    build: ./backend
+    environment:
+      TEST_DATABASE_URL: postgresql://test:test@test-db:5432/tomato_test
+    depends_on:
+      test-db:
+        condition: service_healthy
+    volumes:
+      - ./db:/db:ro
+    command: ["python", "-m", "pytest", "-p", "no:cacheprovider", "--tb=short", "-q"]

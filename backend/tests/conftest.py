@@ -1,11 +1,15 @@
 from datetime import datetime, timezone
+import os
+import uuid
 
 import pytest
 from fakes import pronostico_sintetico
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy import text
 
-from app.database import Base, crear_engine, get_db
+from app.database import crear_engine, get_db
+from app.bootstrap import inicializar_bd
 from app.main import app
 from app.services.clima import ClimaError, UbicacionNoEncontrada, get_clima_client
 
@@ -36,9 +40,30 @@ def fake_clima():
 
 
 @pytest.fixture()
-def client(fake_clima):
-    engine = crear_engine("sqlite://")  # base en memoria, aislada por test
-    Base.metadata.create_all(bind=engine)
+def test_engine():
+    url = os.getenv("TEST_DATABASE_URL", "sqlite://")
+    base_engine = crear_engine(url)
+    schema = None
+    if base_engine.dialect.name == "postgresql":
+        schema = "test_" + uuid.uuid4().hex
+        with base_engine.begin() as connection:
+            connection.execute(text(f'CREATE SCHEMA "{schema}"'))
+        engine = base_engine.execution_options(schema_translate_map={None: schema})
+    else:
+        engine = base_engine
+    try:
+        yield engine
+    finally:
+        if schema:
+            with base_engine.begin() as connection:
+                connection.execute(text(f'DROP SCHEMA "{schema}" CASCADE'))
+        base_engine.dispose()
+
+
+@pytest.fixture()
+def client(fake_clima, test_engine):
+    engine = test_engine
+    inicializar_bd(engine)
     Session = sessionmaker(bind=engine, autoflush=False, expire_on_commit=False)
 
     def override_db():
@@ -52,7 +77,6 @@ def client(fake_clima):
     app.dependency_overrides[get_clima_client] = lambda: fake_clima
     yield TestClient(app)
     app.dependency_overrides.clear()
-    engine.dispose()
 
 
 def registrar(client, email="ana@example.com", nombre="Ana Rojas"):

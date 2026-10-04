@@ -18,6 +18,23 @@ pytest                           # tests (sin internet: el clima se simula)
 
 ## Variables de entorno
 
+Para ejecutar los tests con Python 3.12 y PostgreSQL 16 en una base efímera aislada,
+desde la raíz del repositorio:
+
+```powershell
+docker compose -p tomatoapi-tests -f docker-compose.test.yml up --build --abort-on-container-exit --exit-code-from tests
+docker compose -p tomatoapi-tests -f docker-compose.test.yml down
+```
+
+Las pruebas locales siguen usando SQLite en memoria. `TEST_DATABASE_URL` permite
+probar PostgreSQL creando y eliminando un esquema aleatorio por caso de prueba.
+
+El backend carga las seis especies iniciales al arrancar, tanto en SQLite como en PostgreSQL,
+sin sobrescribir especies ni parámetros existentes. Para una base PostgreSQL creada por la
+versión anterior del backend, ejecutar `db/migrations/001_catalogo_fk.sql` después del primer
+arranque actualizado para agregar la clave foránea del catálogo. No ejecutar `db/initDB.sql`
+sobre una base existente: es un script de inicialización que elimina tablas.
+
 | Variable | Descripción |
 |---|---|
 | `DATABASE_URL` | Cadena de conexión PostgreSQL (Neon). Sin definir: SQLite local. |

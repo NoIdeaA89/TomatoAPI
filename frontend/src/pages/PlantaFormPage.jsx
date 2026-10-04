@@ -1,9 +1,11 @@
 import { useState } from "react"
 import { useNavigate, Link } from "react-router-dom"
-import { ArrowLeft, Save, Leaf } from "lucide-react"
+import { ArrowLeft, Leaf } from "lucide-react"
 import { crearPlanta } from "../services/plantacionesService.js"
 import DemoBanner from "../components/common/DemoBanner.jsx"
 import LoadingSpinner from "../components/common/LoadingSpinner.jsx"
+
+import { validarPlanta, generarIdPlanta } from "../utils/planta.js"
 
 const EMPTY = {
   nombre: "",
@@ -28,27 +30,20 @@ export default function PlantaFormPage() {
   }
 
   function validar() {
-    const e = {}
-    if (!form.nombre.trim()) e.nombre = "Ingresa el nombre común."
-    if (!form.especie.trim()) e.especie = "Ingresa la especie científica."
-    if (!form.kc_ini || form.kc_ini <= 0) e.kc_ini = "Debe ser mayor a 0."
-    if (!form.kc_mid || form.kc_mid <= 0) e.kc_mid = "Debe ser mayor a 0."
-    if (!form.kc_end || form.kc_end <= 0) e.kc_end = "Debe ser mayor a 0."
-    if (!form.raiz_m || form.raiz_m <= 0) e.raiz_m = "Debe ser mayor a 0."
-    if (!form.agotamiento || form.agotamiento <= 0 || form.agotamiento >= 1) e.agotamiento = "Debe estar entre 0.1 y 0.9."
+    const e = validarPlanta(form)
     setErrores(e)
     return Object.keys(e).length === 0
   }
 
   async function onSubmit(evento) {
     evento.preventDefault()
-    if (!validar()) return
+    if (guardando || !validar()) return
     setGuardando(true)
     setErrorGuardado(null)
 
     try {
       // Autogenerar un ID en minúsculas y sin espacios
-      const idGenerado = form.nombre.trim().toLowerCase().replace(/\s+/g, '_')
+      const idGenerado = generarIdPlanta(form.nombre.trim())
       
       const payload = {
         id: idGenerado,
@@ -88,12 +83,12 @@ export default function PlantaFormPage() {
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem", marginBottom: "1rem" }}>
           <div className="field">
             <label htmlFor="nombre">Nombre común</label>
-            <input id="nombre" type="text" className={`input ${errores.nombre ? "has-error" : ""}`} value={form.nombre} onChange={(e) => actualizar("nombre", e.target.value)} placeholder="Ej: Nalca" />
+            <input id="nombre" type="text" maxLength={100} className={`input ${errores.nombre ? "has-error" : ""}`} value={form.nombre} onChange={(e) => actualizar("nombre", e.target.value)} placeholder="Ej: Nalca" />
             {errores.nombre && <span className="field-error">{errores.nombre}</span>}
           </div>
           <div className="field">
             <label htmlFor="especie">Especie científica</label>
-            <input id="especie" type="text" className={`input ${errores.especie ? "has-error" : ""}`} value={form.especie} onChange={(e) => actualizar("especie", e.target.value)} placeholder="Ej: Gunnera tinctoria" />
+            <input id="especie" type="text" maxLength={100} className={`input ${errores.especie ? "has-error" : ""}`} value={form.especie} onChange={(e) => actualizar("especie", e.target.value)} placeholder="Ej: Gunnera tinctoria" />
             {errores.especie && <span className="field-error">{errores.especie}</span>}
           </div>
         </div>
@@ -103,17 +98,17 @@ export default function PlantaFormPage() {
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "1rem", marginBottom: "1rem" }}>
           <div className="field">
             <label htmlFor="kc_ini">Etapa Inicial</label>
-            <input id="kc_ini" type="number" step="0.01" className={`input ${errores.kc_ini ? "has-error" : ""}`} value={form.kc_ini} onChange={(e) => actualizar("kc_ini", e.target.value)} placeholder="0.60" />
+            <input id="kc_ini" min="0.1" max="2" type="number" step="0.01" className={`input ${errores.kc_ini ? "has-error" : ""}`} value={form.kc_ini} onChange={(e) => actualizar("kc_ini", e.target.value)} placeholder="0.60" />
             {errores.kc_ini && <span className="field-error">{errores.kc_ini}</span>}
           </div>
           <div className="field">
             <label htmlFor="kc_mid">Etapa Media</label>
-            <input id="kc_mid" type="number" step="0.01" className={`input ${errores.kc_mid ? "has-error" : ""}`} value={form.kc_mid} onChange={(e) => actualizar("kc_mid", e.target.value)} placeholder="1.15" />
+            <input id="kc_mid" min="0.1" max="2" type="number" step="0.01" className={`input ${errores.kc_mid ? "has-error" : ""}`} value={form.kc_mid} onChange={(e) => actualizar("kc_mid", e.target.value)} placeholder="1.15" />
             {errores.kc_mid && <span className="field-error">{errores.kc_mid}</span>}
           </div>
           <div className="field">
             <label htmlFor="kc_end">Etapa Final</label>
-            <input id="kc_end" type="number" step="0.01" className={`input ${errores.kc_end ? "has-error" : ""}`} value={form.kc_end} onChange={(e) => actualizar("kc_end", e.target.value)} placeholder="0.80" />
+            <input id="kc_end" min="0.1" max="2" type="number" step="0.01" className={`input ${errores.kc_end ? "has-error" : ""}`} value={form.kc_end} onChange={(e) => actualizar("kc_end", e.target.value)} placeholder="0.80" />
             {errores.kc_end && <span className="field-error">{errores.kc_end}</span>}
           </div>
         </div>
@@ -123,12 +118,12 @@ export default function PlantaFormPage() {
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
           <div className="field">
             <label htmlFor="raiz_m">Profundidad de Raíz (m)</label>
-            <input id="raiz_m" type="number" step="0.1" className={`input ${errores.raiz_m ? "has-error" : ""}`} value={form.raiz_m} onChange={(e) => actualizar("raiz_m", e.target.value)} placeholder="0.7" />
+            <input id="raiz_m" min="0.1" max="5" type="number" step="0.1" className={`input ${errores.raiz_m ? "has-error" : ""}`} value={form.raiz_m} onChange={(e) => actualizar("raiz_m", e.target.value)} placeholder="0.7" />
             {errores.raiz_m && <span className="field-error">{errores.raiz_m}</span>}
           </div>
           <div className="field">
             <label htmlFor="agotamiento">Agotamiento Permitido</label>
-            <input id="agotamiento" type="number" step="0.01" className={`input ${errores.agotamiento ? "has-error" : ""}`} value={form.agotamiento} onChange={(e) => actualizar("agotamiento", e.target.value)} placeholder="0.40" />
+            <input id="agotamiento" min="0.1" max="0.9" type="number" step="0.01" className={`input ${errores.agotamiento ? "has-error" : ""}`} value={form.agotamiento} onChange={(e) => actualizar("agotamiento", e.target.value)} placeholder="0.40" />
             {errores.agotamiento && <span className="field-error">{errores.agotamiento}</span>}
           </div>
         </div>

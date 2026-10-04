@@ -7,13 +7,14 @@ from fastapi.responses import JSONResponse
 
 from app import models  # noqa: F401  (registra las tablas en Base.metadata)
 from app.config import settings
-from app.database import Base, engine
+from app.database import engine
+from app.bootstrap import inicializar_bd
 from app.routers import auth, plantaciones, plantas
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    Base.metadata.create_all(bind=engine)
+    inicializar_bd(engine)
     yield
 
 
