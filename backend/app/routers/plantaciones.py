@@ -139,6 +139,9 @@ def crear(
     )
     db.add(p)
     db.commit()
+
+    db.refresh(p)
+    
     return _serializar(p, _evaluar_seguro(clima, p))
 
 
