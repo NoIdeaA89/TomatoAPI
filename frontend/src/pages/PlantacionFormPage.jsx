@@ -175,6 +175,19 @@ export default function PlantacionFormPage() {
         </div>
 
         <div className="field">
+          <label htmlFor="ubicacion">Ubicación (Ciudad, País)</label>
+          <input
+            id="ubicacion"
+            type="text"
+            className={`input ${errores.ubicacion ? "has-error" : ""}`}
+            value={form.ubicacion}
+            onChange={(e) => actualizar("ubicacion", e.target.value)}
+            placeholder="Ej: Santiago, Chile"
+          />
+          {errores.ubicacion && <span className="field-error">{errores.ubicacion}</span>}
+        </div>
+
+        <div className="field">
           <label htmlFor="etapa">Etapa de desarrollo</label>
           <select
             id="etapa"
